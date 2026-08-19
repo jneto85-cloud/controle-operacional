@@ -1,0 +1,82 @@
+{
+  "_nota": "FONTE DA VERDADE. Campos 'entrada' foram extraidos do PDF do Editor do app (tela de entrada de dados, 06/08/2026). Campos 'exibido' foram lidos das imagens exportadas/telas do app. NENHUM valor aqui foi calculado por mim — sao transcricoes.",
+  "_fontes": {
+    "entrada": "Relatorio Diario de Operacoes.pdf (aba Editor, estado atual do app)",
+    "exibido_v_atual": "screenshot da aba Relatorio do app em 06/08/2026 (dataset atual)",
+    "exibido_v_anterior": "PNG exportado do relatorio de 25/07/2026 (dataset anterior, deslocado exatamente 12 dias)"
+  },
+
+  "entrada": {
+    "config": {
+      "dataRelatorio": "2026-08-06",
+      "turno": "NOTURNO",
+      "subtitulo": "CONTROLE SONDA - POCO",
+      "proximaAtualizacaoData": "2026-08-07",
+      "proximaAtualizacaoTurno": "DIURNO"
+    },
+    "sondas": [
+      {"sonda":"SPT-82","poco":"CP-1456-SE","operacao":"OPEX AGUA","inicio":"2026-07-28T00:00","criticidade":"Alto","producao":0,"producaoBruta":"0","runLife":930,"situacao":"PESCARIA AGUA","proximaAcao":"CONTINUIDADE DA PESCARIA"},
+      {"sonda":"SPT-92","poco":"8-SZ-0565-SE","operacao":"OPEX AGUA","inicio":"2026-07-27T21:00","criticidade":"Alto","producao":760,"producaoBruta":"760","runLife":2341,"situacao":"ROTOGRAMA","proximaAcao":"CONCLUIR TESTE DE INJETIVIDADE"},
+      {"sonda":"SPT-53","poco":"CP-2005-SE","operacao":"BCS","inicio":"2026-08-02T20:00","criticidade":"Alto","producao":null,"producaoBruta":"-","runLife":401,"situacao":"PESCARIA BCS","proximaAcao":"3a MANOBRA: DESCER COLLAR (2 1/4\" A 5\")"},
+      {"sonda":"SPT-131","poco":"7-AN-37D-SE","operacao":"ARRASAMENTO","inicio":"2026-08-02T18:30","criticidade":"Media","producao":0,"producaoBruta":"0","runLife":0,"situacao":"EXCESSO DE DIAS","proximaAcao":"ACELERAR ARRASAMENTO"},
+      {"sonda":"SPT-61","poco":"CP-53-SE","operacao":"OPEX AGUA","inicio":"2026-08-04T11:00","criticidade":"Media","producao":963,"producaoBruta":"963","runLife":1748,"situacao":"NPT","proximaAcao":"NORMALIZAR E RETOMAR OPERACAO"},
+      {"sonda":"SPT-28","poco":"CP-349-SE","operacao":"BCS","inicio":"2026-08-05T16:30","criticidade":"Normal","producao":20,"producaoBruta":"20","runLife":840,"situacao":"DTM","proximaAcao":"CONCLUIR DTM"},
+      {"sonda":"SPT-154","poco":"7-CP-1324-SE","operacao":"OPEX AGUA","inicio":"2026-08-01T00:00","criticidade":"Normal","producao":1233,"producaoBruta":"1233","runLife":1347,"situacao":"SEM OBSERVACAO","proximaAcao":"ACOMPANHAR ROTOGRAMA"}
+    ],
+    "pocosEntregues": [
+      {"categoria":"Injetores","meta":0,"entregue":4},
+      {"categoria":"Completacao (Oleo)","meta":0,"entregue":5},
+      {"categoria":"Produtor (WO)","meta":0,"entregue":4},
+      {"categoria":"Pulling","meta":0,"entregue":7},
+      {"categoria":"Arrasamento","meta":0,"entregue":7},
+      {"categoria":"Captacao","meta":0,"entregue":9}
+    ],
+    "npt": [
+      {"tipo":"NPT Mecanico (Sonda)","qtd":2,"obsPercentDigitado":"67%"},
+      {"tipo":"NPT Operacional (Pescaria)","qtd":1,"obsPercentDigitado":"33%"}
+    ],
+    "notaNpt": "NPT de 21:45 devido falha no motor da sonda (Substituicao do motor do carro sonda).",
+    "destaques": [
+      "Foram realizadas 09 manobras de pescaria. Recuperado o mandril do packer AD-1, permanecendo no poco o rodal inferior do packer DSL, tubo e niple DSL.",
+      "Recuperado peixe em sua totalidade (SPT-53 - CP-2005-SE).",
+      "BRASERV: CIA DCS montando equipamentos para o 1o tampao de cimento no intervalo de 800 a 870 m (SPT-61).",
+      "Descendo coluna com comandos e broca triconica 4 3/4\" para limpeza de fundo ate 801,0 m (SPT-82).",
+      "Motor: substituicao do motor do carro sonda (falha mecanica as 21:45).",
+      "Conterp: realizando testes finais de injetividade para conclusao do poco (SPT-154)."
+    ],
+    "recomendacoes": [
+      "Priorizar resolucao das criticas (SPT-82, SPT-92 e SPT-53) com foco na pescaria e reducao de NPT.",
+      "Acelerar execucao do arrasamento SPT-131 para evitar novos dias de exposicao.",
+      "Controlar NPT mecanico: concluir substituicao do motor e validar preventiva dos equipamentos criticos.",
+      "Acompanhar rotograma e testes de injetividade para encerramento e entrega dos pocos.",
+      "Manter comunicacao e alinhamento diario entre Fiscal, Encarregado e Engenharia."
+    ]
+  },
+
+  "exibido_v_atual": {
+    "_nota": "Lido da tela do app (aba Relatorio) com o dataset de 06/08/2026. Alguns campos estavam cortados na captura e estao marcados como null (NAO INVENTAR).",
+    "diasOperacao": {"SPT-82":12,"SPT-92":12,"SPT-53":6,"SPT-131":6,"SPT-61":4,"SPT-28":3,"SPT-154":8},
+    "criticidadePercent": {"criticas":null,"atencao":29,"normais":29},
+    "criticidadeQtd": {"criticas":null,"atencao":2,"normais":2},
+    "tituloGraficoEntregues": "POCOS ENTREGUES ATE 06/08/2026",
+    "barrasEntregues": {"Injetores":4,"Completacao (Oleo)":5,"Produtor (WO)":4,"Pulling":7,"Arrasamento":7,"Captacao":9},
+    "totalEntregues": 36
+  },
+
+  "exibido_v_anterior": {
+    "_nota": "PNG exportado do relatorio de 25/07/2026. O dataset era o MESMO, com todas as datas deslocadas exatamente 12 dias para tras. Serve para verificar o comportamento do calculo de dias.",
+    "dataRelatorio": "2026-07-25",
+    "turno": "NOTURNO",
+    "sondasInicio": {"SPT-82":"2026-07-16T00:00","SPT-92":"2026-07-15T21:00","SPT-53":"2026-07-21T20:00","SPT-131":"2026-07-21T18:30","SPT-61":"2026-07-23T11:00","SPT-28":"2026-07-24T16:30","SPT-154":"2026-07-20T00:00"},
+    "diasOperacao": {"SPT-82":9.84,"SPT-92":9.97,"SPT-53":4.01,"SPT-131":4.07,"SPT-61":2.38,"SPT-28":1.16,"SPT-154":5.84},
+    "cabecalho": {"sondasEmOperacao":7,"criticas":3,"criticasPercent":43,"atencao":2,"atencaoPercent":29,"normais":2,"normaisPercent":28,"pocosEntreguesAteHoje":36},
+    "donutCriticidade": {"criticas":{"qtd":3,"percent":43},"atencao":{"qtd":2,"percent":29},"normais":{"qtd":2,"percent":28}},
+    "barrasEntregues": {"Injetores":10,"Completacao (Oleo)":3,"Produtor (WO)":5,"Pulling":4,"Arrasamento":7,"Captacao":7},
+    "totalEntregues": 36,
+    "donutPocosAndamento": {"Injetores":{"qtd":4,"percent":57},"Produtor (BCS)":{"qtd":2,"percent":29},"Arrasamento":{"qtd":1,"percent":14}},
+    "donutTiposOperacao": {"OPEX AGUA":{"qtd":3,"percent":43},"PESCARIA":{"qtd":3,"percent":43},"BCS":{"qtd":1,"percent":14}},
+    "top3": [{"pos":1,"sonda":"SPT-92","valor":9.97},{"pos":2,"sonda":"SPT-82","valor":9.84},{"pos":3,"sonda":"SPT-154","valor":5.84}],
+    "donutNpt": {"totalEventos":3,"mecanico":{"qtd":2,"percent":67},"operacional":{"qtd":1,"percent":33}},
+    "tabelaCriticidade": {"SPT-82":"ALTO","SPT-92":"ALTO","SPT-53":"ALTO","SPT-131":"ATENCAO","SPT-61":"ATENCAO","SPT-28":"NORMAL","SPT-154":"NORMAL"}
+  }
+}

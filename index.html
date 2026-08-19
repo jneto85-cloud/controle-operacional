@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta name="theme-color" content="#071b33">
+<meta name="description" content="Relatório Diário de Operações — Controle Sonda/Poço. Cálculos derivados de fonte única e reproduzíveis.">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Relatório Diário de Operações</title>
+<style id="estilos">
+/* ============================================================
+   BASE
+   ============================================================ */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+ --azul:#071b33; --azul2:#0d2c52; --azul3:#14406f;
+ --vermelho:#d92d20; --laranja:#e8890c; --verde:#1f9d55; --ciano:#1d8fb8;
+ --roxo:#7b4fc9; --cinza:#7a8794;
+ --borda:#d7dee6; --fundo:#eef2f6; --texto:#0f2136; --texto2:#5a6b7d;
+}
+body{
+ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+ background:var(--fundo); color:var(--texto); -webkit-font-smoothing:antialiased;
+ padding-bottom:env(safe-area-inset-bottom);
+}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+
+/* ============================================================
+   BARRA SUPERIOR / ABAS
+   ============================================================ */
+.topo{
+ position:sticky;top:0;z-index:50;background:var(--azul);color:#fff;
+ padding:calc(10px + env(safe-area-inset-top)) 12px 10px;
+ display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+ box-shadow:0 2px 10px rgba(0,0,0,.25);
+}
+.topo h1{font-size:15px;font-weight:800;letter-spacing:.3px;line-height:1.15;flex:1 1 160px}
+.topo h1 span{display:block;font-size:11px;font-weight:600;color:#7fc4e8;letter-spacing:1px}
+.abas{display:flex;gap:6px}
+.aba{
+ background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.22);color:#fff;
+ padding:9px 16px;border-radius:9px;font-weight:700;font-size:13px;cursor:pointer;
+}
+.aba[aria-selected="true"]{background:#2f9fd0;border-color:#2f9fd0}
+.acoes{display:flex;gap:6px;width:100%}
+.acoes button{
+ flex:1;background:#1f7fae;border:none;color:#fff;padding:10px;border-radius:9px;
+ font-weight:700;font-size:13px;cursor:pointer;
+}
+.acoes button.sec{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25)}
+
+/* ============================================================
+   EDITOR
+   ============================================================ */
+.painel{padding:14px;max-width:820px;margin:0 auto}
+.bloco{background:#fff;border:1px solid var(--borda);border-radius:14px;padding:14px;margin-bottom:14px}
+.bloco > h2{
+ font-size:12px;font-weight:800;letter-spacing:1.2px;color:var(--azul3);
+ text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;
+ justify-content:space-between;gap:8px;flex-wrap:wrap;
+}
+.grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.sub{grid-column:1/-1;font-size:10px;font-weight:800;letter-spacing:1px;color:var(--azul3);
+ text-transform:uppercase;border-top:1px solid var(--borda);padding-top:9px;margin-top:2px}
+label.campo{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:700;color:var(--texto2);letter-spacing:.4px}
+label.campo > input, label.campo > select, label.campo > textarea{
+ border:1px solid var(--borda);border-radius:9px;padding:10px;font-size:15px;
+ font-weight:600;background:#fbfcfe;width:100%;
+}
+label.campo > input:focus, label.campo > select:focus, label.campo > textarea:focus{
+ outline:2px solid #2f9fd0;outline-offset:1px;background:#fff
+}
+label.campo textarea{min-height:64px;resize:vertical;font-weight:500;line-height:1.4}
+label.linha{flex-direction:row;align-items:center;gap:8px;font-size:12px}
+label.linha input{width:auto}
+.cartao{border:1px solid var(--borda);border-radius:12px;padding:12px;margin-bottom:10px;background:#fafcfe}
+.cartao .cab{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.cartao .cab strong{font-size:13px;color:var(--azul3)}
+.btAdd{background:#1f7fae;border:none;color:#fff;padding:8px 14px;border-radius:9px;font-weight:700;font-size:12px;cursor:pointer}
+.btDel{background:#fdecea;border:1px solid #f5c2bd;color:#c0271c;padding:6px 11px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer}
+
+.valida{border-radius:12px;padding:12px;font-size:13px;line-height:1.5}
+.valida.ok{background:#eaf7ef;border:1px solid #b6e0c4;color:#14603a}
+.valida.aviso{background:#fff6e6;border:1px solid #f2d69a;color:#7a5210}
+.valida.erro{background:#fdecea;border:1px solid #f5c2bd;color:#8f1d14}
+.valida ul{margin:8px 0 0 18px}
+.valida li{margin-bottom:5px}
+.valida .titulo{font-weight:800;letter-spacing:.4px}
+
+/* ============================================================
+   RELATÓRIO — largura fixa de 1000px, escalado para caber na tela
+   ============================================================ */
+.molduraRel{overflow:hidden;padding:14px 0}
+.escala{transform-origin:top center;margin:0 auto;width:1000px}
+/* A fonte precisa estar declarada AQUI, e não só em body: na exportação PNG apenas o
+   #relatorio é serializado para dentro do SVG, então regras aplicadas a body não chegam
+   junto e o texto sairia com a fonte serifada padrão do navegador. */
+#relatorio{
+ width:1000px;background:#eef2f6;padding:14px;font-size:13px;color:var(--texto);
+ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+.rCab{
+ background:linear-gradient(90deg,var(--azul) 0%,var(--azul2) 100%);color:#fff;
+ border-radius:12px;padding:16px 20px;display:flex;justify-content:space-between;
+ align-items:center;gap:16px;margin-bottom:10px;
+}
+.rCab .tit{font-size:27px;font-weight:900;letter-spacing:.5px;line-height:1.1}
+.rCab .st{font-size:13px;font-weight:700;color:#7fc4e8;letter-spacing:1.4px;margin-top:5px}
+.rCab .badge{
+ background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.26);border-radius:12px;
+ padding:10px 18px;text-align:center;min-width:126px;
+}
+.rCab .badge b{display:block;font-size:34px;font-weight:900;line-height:1}
+.rCab .badge span{font-size:10px;font-weight:800;letter-spacing:1.2px;color:#cfe6f5}
+
+.faixa{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:10px}
+.kpi{background:#fff;border-radius:12px;padding:12px 10px;text-align:center;border-top:4px solid var(--cinza)}
+.kpi .r{font-size:10px;font-weight:800;letter-spacing:.9px;color:var(--texto2);text-transform:uppercase;line-height:1.25;min-height:25px}
+.kpi .v{font-size:31px;font-weight:900;line-height:1.05;margin-top:4px}
+.kpi .p{font-size:10.5px;font-weight:800;margin-top:2px;color:var(--texto2);line-height:1.3}
+.kpi.c{border-top-color:var(--vermelho)} .kpi.c .v{color:var(--vermelho)}
+.kpi.a{border-top-color:var(--laranja)} .kpi.a .v{color:var(--laranja)}
+.kpi.n{border-top-color:var(--verde)}   .kpi.n .v{color:var(--verde)}
+.kpi.i{border-top-color:var(--azul3)}   .kpi.i .v{color:var(--azul3)}
+
+.trio{display:grid;grid-template-columns:1fr 1.25fr 1fr;gap:10px;margin-bottom:10px}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.cx{background:#fff;border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.cx > h3{
+ background:var(--azul2);color:#fff;font-size:11px;font-weight:800;letter-spacing:1.1px;
+ padding:9px 12px;text-align:center;text-transform:uppercase;
+}
+.cx .corpo{padding:12px;flex:1;display:flex;flex-direction:column;justify-content:center}
+.legenda{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700}
+.legenda i{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
+.legenda div{display:flex;align-items:center;gap:7px}
+.legenda .q{margin-left:auto;color:var(--texto2);font-weight:800;font-size:11px}
+.rosca{display:flex;align-items:center;gap:12px}
+
+table.st{width:100%;border-collapse:collapse;font-size:11.5px;background:#fff}
+table.st th{
+ background:var(--azul2);color:#fff;font-size:9.5px;font-weight:800;letter-spacing:.7px;
+ padding:8px 5px;text-transform:uppercase;
+}
+table.st td{padding:8px 5px;border-bottom:1px solid #e6ecf2;text-align:center;font-weight:600}
+table.st td.esq{text-align:left}
+table.st tr:last-child td{border-bottom:none}
+table.eq{width:100%;border-collapse:collapse;font-size:11px;background:#fff}
+table.eq th{background:var(--azul3);color:#fff;font-size:9px;font-weight:800;letter-spacing:.6px;padding:7px 5px;text-transform:uppercase}
+table.eq td{padding:7px 5px;border-bottom:1px solid #e6ecf2;text-align:left;font-weight:600}
+table.eq tr:last-child td{border-bottom:none}
+.selo{display:inline-block;padding:4px 10px;border-radius:7px;font-size:10px;font-weight:900;letter-spacing:.6px;color:#fff}
+.selo.c{background:var(--vermelho)} .selo.a{background:var(--laranja)} .selo.n{background:var(--verde)}
+.selo.dtm{background:var(--ciano)}
+.dias{font-weight:900;font-size:14px}
+.dias.c{color:var(--vermelho)} .dias.a{color:var(--laranja)} .dias.n{color:var(--verde)}
+.dias.dtm{color:var(--ciano);font-size:10px;font-weight:800;letter-spacing:.5px}
+.vazio{color:#9aa7b4;font-weight:600;font-style:italic;font-size:10.5px}
+
+.lista{padding:12px 14px;font-size:12px;line-height:1.5}
+.lista .it{display:flex;gap:9px;margin-bottom:9px;align-items:flex-start}
+.lista .it:last-child{margin-bottom:0}
+.lista .pt{width:9px;height:9px;border-radius:50%;margin-top:4px;flex:none}
+.lista .num{
+ width:19px;height:19px;border-radius:50%;background:var(--azul3);color:#fff;flex:none;
+ font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;margin-top:1px;
+}
+.rodape{
+ background:var(--azul);color:#fff;border-radius:12px;padding:12px 18px;display:flex;
+ justify-content:space-between;align-items:center;gap:14px;font-size:11px;font-weight:800;
+ letter-spacing:.7px;flex-wrap:wrap;
+}
+.rodape .car{font-weight:600;letter-spacing:.2px;color:#9fc6de;font-size:10px;text-align:right}
+.nota{font-size:9.5px;color:var(--texto2);font-weight:600;padding:0 12px 9px;text-align:center;line-height:1.35}
+
+.oculto{display:none!important}
+@media print{
+ .topo,.painel{display:none!important}
+ body{background:#fff}
+ .molduraRel{padding:0}
+ .escala{transform:none!important;width:1000px}
+}
+</style>
+</head>
+<body>
+
+<header class="topo">
+ <h1>RELATÓRIO DIÁRIO<span>CONTROLE SONDA — POÇO</span></h1>
+ <div class="abas" role="tablist">
+  <button class="aba" id="abaEditor" role="tab" aria-selected="true" type="button">Editor</button>
+  <button class="aba" id="abaRel" role="tab" aria-selected="false" type="button">Relatório</button>
+ </div>
+ <div class="acoes">
+  <button id="btPng" type="button">Exportar PNG</button>
+  <button id="btPdf" class="sec" type="button">Salvar PDF</button>
+  <button id="btJson" class="sec" type="button">Backup</button>
+ </div>
+</header>
+
+<main>
+ <section class="painel" id="paneEditor"></section>
+ <section class="molduraRel oculto" id="paneRel">
+  <div class="escala" id="escala"><div id="relatorio"></div></div>
+ </section>
+</main>
+
+<input type="file" id="arqJson" accept="application/json" class="oculto">
+
+<script>
+(function(){
+'use strict';
+
+/* ============================================================
+   1. NÚCLEO DE CÁLCULO — funções puras, sem DOM
+   ------------------------------------------------------------
+   Tudo que aparece no relatório sai daqui, e daqui sai de UMA
+   única fonte: o objeto `estado`. Foi essa a correção do achado
+   crítico 2 da auditoria (dois gráficos discordando entre si):
+   se todo gráfico deriva da mesma tabela, é impossível divergirem.
+   Este bloco é espelhado em verificacao_nucleo.js para teste
+   automatizado em Node.
+   ============================================================ */
+
+const DIA_MS = 86400000;
+
+/* Datas são convertidas para UTC a partir dos componentes, tanto o
+   fechamento quanto o início de cada sonda. Como os dois lados usam
+   exatamente a mesma conversão, a diferença entre eles é exata e não
+   depende do fuso do aparelho — o mesmo relatório aberto em qualquer
+   lugar do mundo mostra os mesmos dias de operação. */
+function msDe(dataISO, horaHM){
+ if(!dataISO) return NaN;
+ const [a,m,d] = String(dataISO).split('-').map(Number);
+ const [h,min] = String(horaHM||'00:00').split(':').map(Number);
+ if(![a,m,d].every(Number.isFinite)) return NaN;
+ return Date.UTC(a, m-1, d, h||0, min||0);
+}
+function msDeInicio(valor){
+ if(!valor) return NaN;
+ const [data,hora] = String(valor).split('T');
+ return msDe(data, hora);
+}
+
+/* CORREÇÃO DO ACHADO CRÍTICO 1 — o instante de referência é o
+   fechamento DECLARADO do relatório, nunca Date.now(). O relatório
+   passa a ser um documento reproduzível: reabrir daqui a um ano
+   mostra exatamente os mesmos números. */
+function msFechamento(cfg){ return msDe(cfg.dataRelatorio, cfg.horaFechamento); }
+
+/* Os dias de operação contam a partir do INÍCIO DA INTERVENÇÃO.
+   Enquanto a sonda está em DTM (desmontagem/transporte/montagem) a
+   intervenção ainda não começou, então não existe dia de intervenção
+   a contar — a sonda aparece marcada como "EM DTM" e fica fora do
+   ranking de exposição, em vez de receber um número inventado. */
+function diasDeIntervencao(sonda, refMs){
+ const ini = msDeInicio(sonda.inicioIntervencao);
+ if(!Number.isFinite(ini) || !Number.isFinite(refMs)) return null;
+ return (refMs - ini)/DIA_MS;
+}
+
+/* Duração do DTM em horas. Se o DTM começou mas ainda não terminou,
+   devolve o tempo decorrido até o fechamento e marca emAndamento. */
+function duracaoDTM(sonda, refMs){
+ const i = msDeInicio(sonda.inicioDTM);
+ if(!Number.isFinite(i)) return null;
+ const f = msDeInicio(sonda.fimDTM);
+ if(Number.isFinite(f)) return {emAndamento:false, horas:(f-i)/3600000};
+ if(!Number.isFinite(refMs)) return null;
+ return {emAndamento:true, horas:(refMs-i)/3600000};
+}
+
+function contarPor(itens, chave){
+ const m = new Map();
+ itens.forEach(it=>{
+  const k = String(chave(it)||'').trim().toUpperCase() || '(NÃO INFORMADO)';
+  m.set(k, (m.get(k)||0)+1);
+ });
+ return [...m.entries()].map(([rotulo,qtd])=>({rotulo,qtd})).sort((a,b)=>b.qtd-a.qtd);
+}
+
+/* Percentuais SEMPRE derivados da quantidade — nunca digitados
+   (achado crítico latente 1). Quantidades iguais produzem
+   percentuais iguais por construção, o que corrige o achado
+   "29% e 28% para duas categorias de 2 sondas". */
+function comPercentual(itens, total){
+ return itens.map(it=>({...it, pct: total>0 ? it.qtd/total*100 : 0}));
+}
+function somaArredondada(itens){
+ return itens.reduce((s,it)=>s+Math.round(it.pct),0);
+}
+
+const PALETA = ['#d92d20','#e8890c','#1f9d55','#1d8fb8','#7b4fc9','#7a8794','#0d9488','#b45309'];
+function colorir(itens, cores){
+ return itens.map((it,i)=>({...it, cor: (cores && cores[i]) || PALETA[i % PALETA.length]}));
+}
+
+function computar(estado){
+ const cfg = estado.config;
+ const refMs = msFechamento(cfg);
+
+ /* ---- sondas com dias e DTM calculados ---- */
+ const sondas = estado.sondas.map(s=>{
+  const dias = diasDeIntervencao(s, refMs);
+  const emDTM = dias === null;
+  const prod = (s.semMedicao || s.producao === '' || s.producao === null) ? null : Number(s.producao);
+  return {
+   ...s,
+   dias,
+   emDTM,
+   diasInvalido: !emDTM && dias < 0,
+   dtm: duracaoDTM(s, refMs),
+   producaoNum: Number.isFinite(prod) ? prod : null
+  };
+ });
+ const total = sondas.length;
+ const emIntervencao = sondas.filter(s=>!s.emDTM).length;
+ const emDTM = total - emIntervencao;
+
+ /* ---- criticidade ---- */
+ const ORDEM_CRIT = [
+  {chave:'critica', rotulo:'CRÍTICAS', cor:'#d92d20'},
+  {chave:'atencao', rotulo:'ATENÇÃO',  cor:'#e8890c'},
+  {chave:'normal',  rotulo:'NORMAIS',  cor:'#1f9d55'}
+ ];
+ const criticidade = comPercentual(
+  ORDEM_CRIT.map(c=>({...c, qtd: sondas.filter(s=>s.criticidade===c.chave).length})),
+  total
+ );
+
+ /* ---- as duas roscas mostram DIMENSÕES DIFERENTES, cada uma somando
+        o total de sondas (correção do achado crítico 2) ---- */
+ const porOperacao = colorir(comPercentual(contarPor(sondas, s=>s.operacao), total),
+                             ['#1d8fb8','#1f9d55','#e8890c','#7b4fc9','#7a8794']);
+ const porSituacao = colorir(comPercentual(contarPor(sondas, s=>s.situacao), total));
+
+ /* ---- produção: soma só o que tem medição (achado 5) ---- */
+ const comMedicao = sondas.filter(s=>s.producaoNum !== null);
+ const producaoTotal = comMedicao.reduce((a,s)=>a+s.producaoNum, 0);
+
+ /* ---- poços entregues ---- */
+ const entregues = estado.entregues.map(e=>({
+  ...e,
+  entregue: Number(e.entregue)||0,
+  meta: Number(e.meta)||0
+ }));
+ const totalEntregue = entregues.reduce((a,e)=>a+e.entregue, 0);
+ const totalMeta = entregues.reduce((a,e)=>a+e.meta, 0);
+ /* proteção contra divisão por zero (achado 6) */
+ const atingimento = totalMeta > 0 ? totalEntregue/totalMeta*100 : null;
+
+ /* ---- NPT ---- */
+ const nptItens = estado.npt.map(n=>({rotulo:n.tipo, qtd:Number(n.qtd)||0}));
+ const totalNpt = nptItens.reduce((a,n)=>a+n.qtd, 0);
+ const npt = colorir(comPercentual(nptItens, totalNpt), ['#d92d20','#e8890c','#1d8fb8','#7b4fc9']);
+
+ /* ---- TOP maior exposição: só quem já está em intervenção ---- */
+ const top = sondas.filter(s=>!s.emDTM && !s.diasInvalido).slice().sort((a,b)=>b.dias-a.dias).slice(0,3);
+
+ /* ---- nota de arredondamento: só aparece quando é necessária ---- */
+ const precisaNotaPct = [criticidade, porOperacao, porSituacao, npt]
+   .some(g=> g.length>0 && somaArredondada(g) !== 100);
+
+ return {
+  refMs, sondas, total, emIntervencao, emDTM, criticidade, porOperacao, porSituacao,
+  producaoTotal, qtdComMedicao: comMedicao.length, qtdSemMedicao: total - comMedicao.length,
+  entregues, totalEntregue, totalMeta, atingimento,
+  npt, totalNpt, top, precisaNotaPct
+ };
+}
+
+/* ============================================================
+   2. VALIDAÇÃO — o que a auditoria teria pego sozinha
+   ============================================================ */
+function validar(estado, c){
+ const erros = [], avisos = [], oks = [];
+
+ if(!Number.isFinite(c.refMs)){
+  erros.push('Data ou hora de fechamento inválida — nenhum dia de operação pode ser calculado.');
+ }
+ c.sondas.forEach(s=>{
+  const nome = s.sonda || '(sonda sem nome)';
+  if(s.diasInvalido){
+   erros.push(`${nome}: início da intervenção é posterior ao fechamento do relatório (dias negativos).`);
+  }
+  if(s.emDTM){
+   const quanto = s.dtm ? ` há ${(s.dtm.horas/24).toFixed(2)} dia(s)` : '';
+   avisos.push(`${nome}: em DTM${quanto}, sem início de intervenção. Não entra no cálculo de dias de intervenção nem no TOP 3.`);
+  }
+  if(!String(s.operacao||'').trim()) avisos.push(`${nome}: operação não informada.`);
+  if(!String(s.situacao||'').trim()) avisos.push(`${nome}: situação/observação não informada.`);
+  if(!s.emDTM && s.producaoNum === null && !s.semMedicao){
+   avisos.push(`${nome}: produção em branco. Marque "sem medição" ou informe 0 — em branco não entra no total do campo.`);
+  }
+ });
+
+ /* sonda exposta há muito tempo sem estar marcada como crítica */
+ const limite = Number(estado.config.limiteDias)||0;
+ if(limite > 0){
+  c.sondas.forEach(s=>{
+   if(!s.emDTM && !s.diasInvalido && s.dias >= limite && s.criticidade !== 'critica'){
+    avisos.push(`${s.sonda}: ${s.dias.toFixed(2)} dias de intervenção (limite ${limite}) mas está marcada como "${s.criticidade==='atencao'?'Atenção':'Normal'}". Confirme a criticidade.`);
+   }
+  });
+ }
+
+ /* eventos de NPT sem descrição correspondente */
+ if(c.totalNpt > 0){
+  const descritos = estado.destaques.filter(d=>/npt|falha|motor|parada|quebra|interrup/i.test(d.texto)).length
+                  + (/npt|falha|motor|parada|quebra|interrup/i.test(estado.notaNpt||'') ? 1 : 0);
+  if(descritos < c.totalNpt){
+   avisos.push(`${c.totalNpt} eventos de NPT contabilizados, mas só ${descritos} aparecem descritos nos Destaques ou na Nota NPT. Todo evento contabilizado deveria ter descrição.`);
+  }
+ }
+
+ /* metas parcialmente preenchidas */
+ const comMeta = c.entregues.filter(e=>e.meta>0).length;
+ if(comMeta > 0 && comMeta < c.entregues.length){
+  avisos.push(`Meta preenchida em ${comMeta} de ${c.entregues.length} categorias. O percentual de atingimento só considera as categorias com meta.`);
+ }
+
+ /* autoverificações que provam a fonte única de verdade */
+ const somaOp = c.porOperacao.reduce((a,i)=>a+i.qtd,0);
+ const somaSit = c.porSituacao.reduce((a,i)=>a+i.qtd,0);
+ const somaCrit = c.criticidade.reduce((a,i)=>a+i.qtd,0);
+ if(somaOp===c.total && somaSit===c.total && somaCrit===c.total){
+  oks.push(`Os três agrupamentos (criticidade, operação, situação) somam exatamente ${c.total} sondas — nenhum gráfico pode contradizer a tabela.`);
+ } else {
+  erros.push('Falha interna: os agrupamentos não somam o total de sondas.');
+ }
+ oks.push(`${c.emIntervencao} sonda(s) em intervenção e ${c.emDTM} em DTM — soma ${c.emIntervencao + c.emDTM} de ${c.total}.`);
+ const somaBarras = c.entregues.reduce((a,e)=>a+e.entregue,0);
+ if(somaBarras === c.totalEntregue) oks.push(`Soma das barras de poços entregues = total exibido (${c.totalEntregue}).`);
+ if(c.totalNpt === c.npt.reduce((a,n)=>a+n.qtd,0)) oks.push(`Soma das quantidades de NPT = total de eventos exibido (${c.totalNpt}).`);
+
+ return {erros, avisos, oks};
+}
+
+/* ============================================================
+   3. ESTADO INICIAL — dados de 18/08/2026
+   ------------------------------------------------------------
+   Sonda, poço, equipe, DTM e início de intervenção vieram do
+   informe operacional. Produção, run life, criticidade, situação
+   e próxima ação ficaram EM BRANCO de propósito: os poços mudaram
+   todos, e reaproveitar os valores dos poços anteriores colocaria
+   número de um poço em cima de outro — exatamente o tipo de erro
+   que a auditoria apontou. A validação do editor lista o que falta.
+   ============================================================ */
+const ESTADO_PADRAO = {
+ config:{
+  titulo:'RELATÓRIO DIÁRIO DE OPERAÇÕES',
+  subtitulo:'CONTROLE SONDA – POÇO',
+  dataRelatorio:'2026-08-18',
+  turno:'NOTURNO',
+  horaFechamento:'20:00',
+  proximaData:'2026-08-19',
+  proximaTurno:'DIURNO',
+  foco:'SEGURANÇA • EFICIÊNCIA • PRODUTIVIDADE • ENTREGA',
+  limiteDias:7
+ },
+ sondas:[
+  {sonda:'SPT-76',  poco:'7BRG-0004-SE', operacao:'', inicioDTM:'2026-08-15T16:00', fimDTM:'2026-08-16T22:00', inicioIntervencao:'2026-08-16T22:00',
+   fiscal:'Adi Souza', engenheiro:'Jubirai Galiza', coordenador:'Marcio Andre', encarregado:'',
+   criticidade:'normal', producao:'', semMedicao:false, runLife:'', situacao:'', proximaAcao:''},
+
+  {sonda:'SPT-131', poco:'7-AN-0025-SE', operacao:'', inicioDTM:'2026-08-17T09:30', fimDTM:'2026-08-18T13:30', inicioIntervencao:'2026-08-18T13:30',
+   fiscal:'Reinaldo Francisco', engenheiro:'Ricardo Freitas', coordenador:'Asley Patrick', encarregado:'David de Azevedo',
+   criticidade:'normal', producao:'', semMedicao:false, runLife:'', situacao:'', proximaAcao:''},
+
+  {sonda:'SPT-28',  poco:'CP-2139D-SE', operacao:'', inicioDTM:'2026-08-18T08:45', fimDTM:'2026-08-18T16:00', inicioIntervencao:'2026-08-18T16:00',
+   fiscal:'João Dantas', engenheiro:'Ricardo Freitas', coordenador:'Asley Patrick', encarregado:'Washington / Valdeson',
+   criticidade:'normal', producao:'', semMedicao:false, runLife:'', situacao:'', proximaAcao:''},
+
+  {sonda:'SPT-61',  poco:'Base Conterp', operacao:'', inicioDTM:'2026-08-17T08:00', fimDTM:'', inicioIntervencao:'',
+   fiscal:'Genivan César', engenheiro:'Jubirai Galliza', coordenador:'Asley Patrick', encarregado:'Ernando Sales / Cicero Nobre',
+   criticidade:'normal', producao:'', semMedicao:true, runLife:'', situacao:'', proximaAcao:''},
+
+  {sonda:'SPT-154', poco:'CP-1166-SE', operacao:'', inicioDTM:'2026-08-02T02:30', fimDTM:'2026-08-02T21:00', inicioIntervencao:'2026-08-02T21:00',
+   fiscal:'Tales Almeida', engenheiro:'Mônica Arruda', coordenador:'Marcio Andre', encarregado:'Anselmo',
+   criticidade:'normal', producao:'', semMedicao:false, runLife:'', situacao:'', proximaAcao:''},
+
+  {sonda:'SPT-92',  poco:'RO-0080-SE', operacao:'', inicioDTM:'2026-08-08T22:00', fimDTM:'2026-08-09T13:00', inicioIntervencao:'2026-08-09T13:00',
+   fiscal:'Antonio Junior', engenheiro:'Stanley Menezes', coordenador:'Marcio Andre', encarregado:'Rogerio / Elizanio',
+   criticidade:'normal', producao:'', semMedicao:false, runLife:'', situacao:'', proximaAcao:''},
+
+  {sonda:'SPT-53',  poco:'CP-705-SE', operacao:'', inicioDTM:'2026-08-14T10:45', fimDTM:'2026-08-14T17:15', inicioIntervencao:'2026-08-14T17:15',
+   fiscal:'Francisco Teles', engenheiro:'Stanley Alves', coordenador:'', encarregado:'Marcelo',
+   criticidade:'normal', producao:'', semMedicao:false, runLife:'', situacao:'', proximaAcao:''},
+
+  {sonda:'SPT-82',  poco:'CP-2140D-SE', operacao:'', inicioDTM:'2026-08-11T04:00', fimDTM:'2026-08-11T10:00', inicioIntervencao:'2026-08-11T10:00',
+   fiscal:'Aurélio Marcos', engenheiro:'Mônica Arruda', coordenador:'Asley Patrick', encarregado:'Filipe Reis / Vanildo Soares',
+   criticidade:'normal', producao:'', semMedicao:false, runLife:'', situacao:'', proximaAcao:''}
+ ],
+ entregues:[
+  {categoria:'Injetores',          meta:0, entregue:0},
+  {categoria:'Completação (Óleo)', meta:0, entregue:0},
+  {categoria:'Produtor (WO)',      meta:0, entregue:0},
+  {categoria:'Pulling',            meta:0, entregue:0},
+  {categoria:'Arrasamento',        meta:0, entregue:0},
+  {categoria:'Captação',           meta:0, entregue:0}
+ ],
+ npt:[],
+ notaNpt:'',
+ destaques:[],
+ recomendacoes:[]
+};
+
+const CHAVE = 'rdo-pro-v3';
+let estado = carregar();
+
+function carregar(){
+ try{
+  const bruto = localStorage.getItem(CHAVE);
+  if(!bruto) return clonar(ESTADO_PADRAO);
+  const s = JSON.parse(bruto);
+  /* mescla defensiva: campos novos de versões futuras não quebram o salvo */
+  return {...clonar(ESTADO_PADRAO), ...s, config:{...ESTADO_PADRAO.config, ...(s.config||{})}};
+ }catch(e){ return clonar(ESTADO_PADRAO); }
+}
+function salvar(){ try{ localStorage.setItem(CHAVE, JSON.stringify(estado)); }catch(e){} }
+function clonar(o){ return JSON.parse(JSON.stringify(o)); }
+
+/* ============================================================
+   4. FORMATAÇÃO
+   ============================================================ */
+const fmt = (n,d=0)=> Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:d, maximumFractionDigits:d});
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+function dataBR(iso){
+ if(!iso) return '—';
+ const [a,m,d] = String(iso).split('-');
+ return `${d}/${m}/${a}`;
+}
+function dataHoraBR(v, separador){
+ if(!v) return '—';
+ const [data,hora] = String(v).split('T');
+ return `${dataBR(data)}${separador||' '}${hora||''}`;
+}
+function horasBR(h){
+ if(h===null||h===undefined||!Number.isFinite(h)) return '—';
+ const total = Math.round(h*60);
+ const hh = Math.floor(total/60), mm = total%60;
+ return `${hh}h${String(mm).padStart(2,'0')}`;
+}
+const ROTULO_CRIT = {critica:'ALTO', atencao:'ATENÇÃO', normal:'NORMAL'};
+const CLASSE_CRIT = {critica:'c', atencao:'a', normal:'n'};
+const COR_DESTAQUE = {critico:'#d92d20', alerta:'#e8890c', positivo:'#1f9d55', info:'#1d8fb8'};
+const VAZIO = '<span class="vazio">a preencher</span>';
+
+/* ============================================================
+   5. GRÁFICOS EM SVG — sem biblioteca externa, exporta limpo
+   ============================================================ */
+function rosca(itens, total, centroTexto, centroRotulo){
+ const S=150, r=52, C=2*Math.PI*r, cx=S/2, cy=S/2;
+ let acc=0;
+ const arcos = itens.filter(i=>i.qtd>0).map(i=>{
+  const len = total>0 ? (i.qtd/total)*C : 0;
+  const el = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${i.cor}" stroke-width="24"
+    stroke-dasharray="${len.toFixed(3)} ${(C-len).toFixed(3)}" stroke-dashoffset="${(-acc).toFixed(3)}"
+    transform="rotate(-90 ${cx} ${cy})"/>`;
+  acc += len; return el;
+ }).join('');
+ const vazio = total>0 ? '' : `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#e6ecf2" stroke-width="24"/>`;
+ return `<svg viewBox="0 0 ${S} ${S}" width="${S}" height="${S}" role="img">
+  ${vazio}${arcos}
+  <text x="${cx}" y="${cy-2}" text-anchor="middle" font-size="30" font-weight="900" fill="#0f2136">${esc(centroTexto)}</text>
+  <text x="${cx}" y="${cy+16}" text-anchor="middle" font-size="9" font-weight="800" fill="#5a6b7d" letter-spacing="1">${esc(centroRotulo)}</text>
+ </svg>`;
+}
+function legenda(itens){
+ return `<div class="legenda">${itens.filter(i=>i.qtd>0).map(i=>
+  `<div><i style="background:${i.cor}"></i><span>${esc(i.rotulo)}</span><span class="q">${i.qtd} (${Math.round(i.pct)}%)</span></div>`
+ ).join('')}</div>`;
+}
+function barrasVerticais(itens, mostrarMeta){
+ const L=300, A=150, base=A-30, topo=12;
+ const max = Math.max(1, ...itens.map(i=>Math.max(i.entregue, mostrarMeta?i.meta:0)));
+ const passo = L/itens.length, larg = Math.min(30, passo*0.5);
+ const corpo = itens.map((i,k)=>{
+  const x = k*passo + passo/2;
+  const h = (i.entregue/max)*(base-topo);
+  const y = base-h;
+  const metaEl = (mostrarMeta && i.meta>0)
+   ? `<line x1="${x-larg/2-3}" y1="${base-(i.meta/max)*(base-topo)}" x2="${x+larg/2+3}" y2="${base-(i.meta/max)*(base-topo)}" stroke="#0f2136" stroke-width="2" stroke-dasharray="3 2"/>` : '';
+  return `<rect x="${x-larg/2}" y="${y}" width="${larg}" height="${Math.max(h,1)}" rx="3" fill="#1d8fb8"/>
+   <text x="${x}" y="${y-4}" text-anchor="middle" font-size="12" font-weight="900" fill="#0f2136">${i.entregue}</text>
+   ${metaEl}
+   <text x="${x}" y="${base+11}" text-anchor="middle" font-size="7.5" font-weight="700" fill="#5a6b7d">${esc(i.categoria.slice(0,13))}</text>`;
+ }).join('');
+ return `<svg viewBox="0 0 ${L} ${A}" width="100%" height="${A}" role="img">
+  <line x1="0" y1="${base}" x2="${L}" y2="${base}" stroke="#d7dee6" stroke-width="1"/>${corpo}</svg>`;
+}
+/* Barras horizontais para agrupamentos com muitas categorias. Uma rosca com 8 fatias
+   iguais de 13% não comunica nada — barras ordenadas comunicam. Quando as situações se
+   repetem (vários poços em pescaria, por exemplo), o agrupamento aparece na hora. */
+function barrasCategoria(itens){
+ if(!itens.length) return '<div style="text-align:center;color:#7a8794;font-size:12px">Sem dados</div>';
+ const L=300, alt=21, A=itens.length*alt+6;
+ const max = Math.max(...itens.map(i=>i.qtd), 1);
+ return `<svg viewBox="0 0 ${L} ${A}" width="100%" height="${A}" role="img">${itens.map((i,k)=>{
+  const y = k*alt+3, w = (i.qtd/max)*(L-178);
+  return `<text x="0" y="${y+12}" font-size="9" font-weight="800" fill="#0f2136">${esc(i.rotulo.slice(0,19))}</text>
+   <rect x="122" y="${y+2}" width="${Math.max(w,2)}" height="12" rx="3" fill="${i.cor}"/>
+   <text x="${122+Math.max(w,2)+5}" y="${y+12}" font-size="9.5" font-weight="900" fill="#5a6b7d">${i.qtd} (${Math.round(i.pct)}%)</text>`;
+ }).join('')}</svg>`;
+}
+function barrasTop(itens){
+ if(!itens.length) return '<div style="text-align:center;color:#7a8794;font-size:12px">Nenhuma sonda em intervenção</div>';
+ const L=300, alt=30, A=itens.length*alt+12;
+ const max = Math.max(...itens.map(i=>i.dias));
+ const cores = ['#d92d20','#e8890c','#1f9d55'];
+ return `<svg viewBox="0 0 ${L} ${A}" width="100%" height="${A}" role="img">${itens.map((s,k)=>{
+  const y = k*alt+4, w = max>0 ? (s.dias/max)*(L-108) : 0;
+  return `<text x="0" y="${y+15}" font-size="10" font-weight="800" fill="#0f2136">${k+1}º ${esc(s.sonda)}</text>
+   <rect x="62" y="${y+5}" width="${Math.max(w,2)}" height="13" rx="3" fill="${cores[k]||'#7a8794'}"/>
+   <text x="${62+Math.max(w,2)+5}" y="${y+15}" font-size="11" font-weight="900" fill="${cores[k]||'#7a8794'}">${fmt(s.dias,2)}</text>`;
+ }).join('')}</svg>`;
+}
+
+/* ============================================================
+   6. RENDER DO RELATÓRIO
+   ============================================================ */
+function renderRelatorio(){
+ const c = computar(estado);
+ const cfg = estado.config;
+ const kpi = (cls,rot,val,pct)=>`<div class="kpi ${cls}"><div class="r">${rot}</div><div class="v">${val}</div>${pct?`<div class="p">${pct}</div>`:''}</div>`;
+ const crit = k => c.criticidade.find(x=>x.chave===k) || {qtd:0,pct:0};
+
+ const linhas = c.sondas.map(s=>`<tr>
+  <td class="esq"><strong>${esc(s.sonda)}</strong></td>
+  <td class="esq">${esc(s.poco)}</td>
+  <td>${s.operacao?esc(s.operacao):VAZIO}</td>
+  <td style="font-size:10px;line-height:1.3">${s.emDTM?'<span class="vazio">em DTM</span>':dataHoraBR(s.inicioIntervencao,'<br>')}</td>
+  <td class="${s.emDTM?'dias dtm':'dias '+(CLASSE_CRIT[s.criticidade]||'n')}">${
+    s.emDTM ? 'EM DTM' : (s.diasInvalido ? '—' : fmt(s.dias,2))}</td>
+  <td>${s.producaoNum===null?'<span class="vazio">s/ medição</span>':fmt(s.producaoNum)}</td>
+  <td>${s.runLife===''||s.runLife===null?VAZIO:fmt(s.runLife)}</td>
+  <td><span class="selo ${s.emDTM?'dtm':(CLASSE_CRIT[s.criticidade]||'n')}">${s.emDTM?'DTM':(ROTULO_CRIT[s.criticidade]||'—')}</span></td>
+  <td class="esq" style="font-size:10.5px">${s.situacao?esc(s.situacao):VAZIO}</td>
+  <td class="esq" style="font-size:10.5px">${s.proximaAcao?esc(s.proximaAcao):VAZIO}</td>
+ </tr>`).join('');
+
+ const linhasEquipe = c.sondas.map(s=>`<tr>
+  <td><strong>${esc(s.sonda)}</strong></td>
+  <td>${esc(s.poco)}</td>
+  <td style="font-size:10px">${dataHoraBR(s.inicioDTM)}</td>
+  <td style="font-size:10px">${s.fimDTM?dataHoraBR(s.fimDTM):'<span class="vazio">em curso</span>'}</td>
+  <td style="text-align:center;font-weight:900;color:${s.dtm&&s.dtm.emAndamento?'#1d8fb8':'#0f2136'}">${
+    s.dtm ? horasBR(s.dtm.horas) + (s.dtm.emAndamento?' *':'') : '—'}</td>
+  <td>${s.fiscal?esc(s.fiscal):VAZIO}</td>
+  <td>${s.engenheiro?esc(s.engenheiro):VAZIO}</td>
+  <td>${s.coordenador?esc(s.coordenador):VAZIO}</td>
+  <td>${s.encarregado?esc(s.encarregado):VAZIO}</td>
+ </tr>`).join('');
+
+ const temDtmAberto = c.sondas.some(s=>s.dtm && s.dtm.emAndamento);
+ const notaPct = c.precisaNotaPct
+  ? '* Percentuais arredondados para número inteiro — a soma pode diferir de 100%. As quantidades são exatas.' : '';
+ const notaDtm = temDtmAberto ? '* DTM ainda em andamento — duração contada até o fechamento do relatório.' : '';
+ const notas = [notaPct, notaDtm].filter(Boolean).join('<br>');
+
+ document.getElementById('relatorio').innerHTML = `
+ <div class="rCab">
+  <div>
+   <div class="tit">${esc(cfg.titulo)}</div>
+   <div class="st">${esc(cfg.subtitulo)} | ${dataBR(cfg.dataRelatorio)} – ${esc(cfg.turno)}</div>
+  </div>
+  <div class="badge"><b>${c.total}</b><span>SONDAS EM OPERAÇÃO</span></div>
+ </div>
+
+ <div class="faixa">
+  ${kpi('i','Sondas em operação', c.total, `${c.emIntervencao} em intervenção${c.emDTM?` • ${c.emDTM} em DTM`:''}`)}
+  ${kpi('c','Críticas', crit('critica').qtd, Math.round(crit('critica').pct)+'%')}
+  ${kpi('a','Atenção',  crit('atencao').qtd, Math.round(crit('atencao').pct)+'%')}
+  ${kpi('n','Normais',  crit('normal').qtd,  Math.round(crit('normal').pct)+'%')}
+  ${kpi('i','Produção do campo', fmt(c.producaoTotal), 'bbl/d'+(c.qtdSemMedicao?` • ${c.qtdSemMedicao} s/ medição`:''))}
+  ${kpi('n','Poços entregues', c.totalEntregue, 'até '+dataBR(cfg.dataRelatorio))}
+ </div>
+
+ <div class="trio">
+  <div class="cx"><h3>Distribuição por criticidade</h3><div class="corpo">
+   <div class="rosca">${rosca(c.criticidade, c.total, c.total, 'SONDAS')}${legenda(c.criticidade)}</div>
+  </div></div>
+  <div class="cx"><h3>Poços entregues até ${dataBR(cfg.dataRelatorio)}</h3><div class="corpo">
+   ${barrasVerticais(c.entregues, c.totalMeta>0)}
+   <div style="text-align:center;font-weight:900;color:#14406f;font-size:13px;margin-top:6px;
+     border:2px solid #14406f;border-radius:8px;padding:5px">TOTAL: ${c.totalEntregue} POÇOS${
+     c.atingimento!==null?` • ${fmt(c.atingimento,0)}% DA META`:''}</div>
+  </div></div>
+  <div class="cx"><h3>Poços em andamento (por operação)</h3><div class="corpo">
+   <div class="rosca">${rosca(c.porOperacao, c.total, c.total, 'POÇOS')}${legenda(c.porOperacao)}</div>
+  </div></div>
+ </div>
+
+ <div class="cx" style="margin-bottom:10px"><h3>Status das sondas — atualização diária</h3>
+  <table class="st"><thead><tr>
+   <th>Sonda</th><th>Poço</th><th>Operação</th><th>Início da<br>intervenção</th><th>Dias de<br>intervenção</th>
+   <th>Produção<br>(bbl/d)</th><th>Run life<br>(dias)</th><th>Criticidade</th>
+   <th>Situação / observação</th><th>Próxima ação</th>
+  </tr></thead><tbody>${linhas}</tbody></table>
+ </div>
+
+ <div class="trio">
+  <div class="cx"><h3>Top 3 — maior exposição (dias)</h3><div class="corpo">${barrasTop(c.top)}</div></div>
+  <div class="cx"><h3>Status de NPT</h3><div class="corpo">
+   <div class="rosca">${rosca(c.npt, c.totalNpt, c.totalNpt, 'EVENTOS')}${legenda(c.npt)}</div>
+   ${estado.notaNpt?`<div style="font-size:10.5px;color:#5a6b7d;margin-top:9px;line-height:1.4">${esc(estado.notaNpt)}</div>`:''}
+  </div></div>
+  <div class="cx"><h3>Situação atual das sondas</h3><div class="corpo">
+   ${barrasCategoria(c.porSituacao)}
+   <div style="font-size:9.5px;color:#7a8794;font-weight:700;text-align:center;margin-top:6px">
+    ${c.porSituacao.length} situações distintas • ${c.total} sondas</div>
+  </div></div>
+ </div>
+
+ <div class="cx" style="margin-bottom:10px"><h3>Equipe e mobilização (DTM)</h3>
+  <table class="eq"><thead><tr>
+   <th>Sonda</th><th>Poço</th><th>Início DTM</th><th>Fim DTM</th><th style="text-align:center">Duração</th>
+   <th>Fiscal</th><th>Engenheiro</th><th>Coordenador</th><th>Encarregado</th>
+  </tr></thead><tbody>${linhasEquipe}</tbody></table>
+ </div>
+
+ <div class="duo">
+  <div class="cx"><h3>Destaques do dia</h3><div class="lista">${
+   estado.destaques.length
+    ? estado.destaques.map(d=>`<div class="it"><span class="pt" style="background:${COR_DESTAQUE[d.cor]||'#1d8fb8'}"></span><span>${esc(d.texto)}</span></div>`).join('')
+    : `<div class="vazio">Nenhum destaque informado.</div>`
+  }</div></div>
+  <div class="cx"><h3>Recomendações e plano de ação</h3><div class="lista">${
+   estado.recomendacoes.length
+    ? estado.recomendacoes.map((r,i)=>`<div class="it"><span class="num">${i+1}</span><span>${esc(r)}</span></div>`).join('')
+    : `<div class="vazio">Nenhuma recomendação informada.</div>`
+  }</div></div>
+ </div>
+
+ ${notas?`<div class="nota">${notas}</div>`:''}
+
+ <div class="rodape">
+  <div>FOCO: ${esc(cfg.foco)}</div>
+  <div style="text-align:center">PRÓXIMA ATUALIZAÇÃO<br>${dataBR(cfg.proximaData)} – ${esc(cfg.proximaTurno)}</div>
+  <div class="car">
+   Fechamento: ${dataBR(cfg.dataRelatorio)} ${esc(cfg.horaFechamento)}<br>
+   Dias de intervenção contados a partir do início da intervenção
+  </div>
+ </div>`;
+ ajustarEscala();
+}
+
+function ajustarEscala(){
+ const el = document.getElementById('escala');
+ const disp = Math.min(1, (document.getElementById('paneRel').clientWidth - 8) / 1000);
+ el.style.transform = `scale(${disp})`;
+ el.parentElement.style.height = (el.getBoundingClientRect().height) + 'px';
+}
+window.addEventListener('resize', ()=>{ if(!document.getElementById('paneRel').classList.contains('oculto')) ajustarEscala(); });
+
+/* ============================================================
+   7. RENDER DO EDITOR
+   ============================================================ */
+function renderEditor(){
+ const cfg = estado.config;
+ const c = computar(estado);
+ const v = validar(estado, c);
+ const p = document.getElementById('paneEditor');
+
+ const painelValida = `
+  ${v.erros.length?`<div class="valida erro" style="margin-bottom:10px"><div class="titulo">⛔ ${v.erros.length} problema(s) que impedem um relatório correto</div><ul>${v.erros.map(e=>`<li>${esc(e)}</li>`).join('')}</ul></div>`:''}
+  ${v.avisos.length?`<div class="valida aviso" style="margin-bottom:10px"><div class="titulo">⚠️ ${v.avisos.length} ponto(s) para conferir</div><ul>${v.avisos.map(e=>`<li>${esc(e)}</li>`).join('')}</ul></div>`:''}
+  ${(!v.erros.length&&!v.avisos.length)?`<div class="valida ok" style="margin-bottom:10px"><div class="titulo">✅ Nenhuma inconsistência encontrada</div></div>`:''}
+  <div class="valida ok"><div class="titulo">Autoverificação</div><ul>${v.oks.map(e=>`<li>${esc(e)}</li>`).join('')}</ul></div>`;
+
+ p.innerHTML = `
+ <div class="bloco"><h2>Validação automática</h2>${painelValida}</div>
+
+ <div class="bloco"><h2>Configurações gerais</h2>
+  <div class="grade">
+   <label class="campo">TÍTULO<input data-cfg="titulo" value="${esc(cfg.titulo)}"></label>
+   <label class="campo">SUBTÍTULO<input data-cfg="subtitulo" value="${esc(cfg.subtitulo)}"></label>
+   <label class="campo">DATA DO RELATÓRIO<input type="date" data-cfg="dataRelatorio" value="${esc(cfg.dataRelatorio)}"></label>
+   <label class="campo">TURNO<select data-cfg="turno">${['NOTURNO','DIURNO'].map(t=>`<option${t===cfg.turno?' selected':''}>${t}</option>`).join('')}</select></label>
+   <label class="campo">HORA DE FECHAMENTO<input type="time" data-cfg="horaFechamento" value="${esc(cfg.horaFechamento)}"></label>
+   <label class="campo">PRÓXIMA ATUALIZAÇÃO<input type="date" data-cfg="proximaData" value="${esc(cfg.proximaData)}"></label>
+   <label class="campo">TURNO DA PRÓXIMA<select data-cfg="proximaTurno">${['DIURNO','NOTURNO'].map(t=>`<option${t===cfg.proximaTurno?' selected':''}>${t}</option>`).join('')}</select></label>
+   <label class="campo">ALERTA ACIMA DE (DIAS)<input type="number" min="0" step="1" data-cfg="limiteDias" value="${esc(cfg.limiteDias)}"></label>
+   <label class="campo" style="grid-column:1/-1">FOCO (RODAPÉ)<input data-cfg="foco" value="${esc(cfg.foco)}"></label>
+  </div>
+  <div style="margin-top:10px;font-size:11.5px;color:#5a6b7d;line-height:1.5;background:#f3f7fb;border-radius:9px;padding:10px">
+   <strong>Data + hora de fechamento</strong> é a referência de todos os dias de intervenção. O relatório não usa o
+   relógio do aparelho — por isso ele mostra sempre os mesmos números, hoje ou daqui a um ano.
+  </div>
+ </div>
+
+ <div class="bloco"><h2>Sondas em operação <button class="btAdd" data-add="sonda" type="button">+ Adicionar sonda</button></h2>
+  ${estado.sondas.map((s,i)=>{
+   const d = c.sondas[i];
+   const resumo = d.emDTM ? 'em DTM — sem início de intervenção'
+                : d.diasInvalido ? 'data inválida'
+                : fmt(d.dias,2)+' dias de intervenção';
+   return `<div class="cartao">
+    <div class="cab"><strong>${esc(s.sonda||'Nova sonda')}${s.poco?' — '+esc(s.poco):''}</strong>
+     <span style="font-size:11px;color:${d.diasInvalido?'#c0271c':d.emDTM?'#1d8fb8':'#5a6b7d'};font-weight:800">${resumo}</span>
+     <button class="btDel" data-del="sonda" data-i="${i}" type="button">Excluir</button></div>
+    <div class="grade">
+     <label class="campo">SONDA<input data-s="${i}" data-k="sonda" value="${esc(s.sonda)}"></label>
+     <label class="campo">POÇO<input data-s="${i}" data-k="poco" value="${esc(s.poco)}"></label>
+
+     <div class="sub">Mobilização (DTM) e início da intervenção</div>
+     <label class="campo">INÍCIO DTM<input type="datetime-local" data-s="${i}" data-k="inicioDTM" value="${esc(s.inicioDTM)}"></label>
+     <label class="campo">FIM DTM<input type="datetime-local" data-s="${i}" data-k="fimDTM" value="${esc(s.fimDTM)}"></label>
+     <label class="campo">INÍCIO DA INTERVENÇÃO<input type="datetime-local" data-s="${i}" data-k="inicioIntervencao" value="${esc(s.inicioIntervencao)}"></label>
+
+     <div class="sub">Situação operacional</div>
+     <label class="campo">OPERAÇÃO<input data-s="${i}" data-k="operacao" value="${esc(s.operacao)}" list="lstOperacao" placeholder="ex.: OPEX ÁGUA, BCS, ARRASAMENTO"></label>
+     <label class="campo">CRITICIDADE<select data-s="${i}" data-k="criticidade">
+      <option value="critica"${s.criticidade==='critica'?' selected':''}>Alto (crítica)</option>
+      <option value="atencao"${s.criticidade==='atencao'?' selected':''}>Atenção</option>
+      <option value="normal"${s.criticidade==='normal'?' selected':''}>Normal</option>
+     </select></label>
+     <label class="campo">PRODUÇÃO (bbl/d)<input type="number" step="any" min="0" data-s="${i}" data-k="producao" value="${esc(s.producao)}"${s.semMedicao?' disabled':''}></label>
+     <label class="campo linha" style="align-self:end"><input type="checkbox" data-s="${i}" data-k="semMedicao"${s.semMedicao?' checked':''}> Sem medição</label>
+     <label class="campo">RUN LIFE (dias)<input type="number" step="1" min="0" data-s="${i}" data-k="runLife" value="${esc(s.runLife)}"></label>
+     <label class="campo" style="grid-column:1/-1">SITUAÇÃO / OBSERVAÇÃO<input data-s="${i}" data-k="situacao" value="${esc(s.situacao)}" list="lstSituacao"></label>
+     <label class="campo" style="grid-column:1/-1">PRÓXIMA AÇÃO<input data-s="${i}" data-k="proximaAcao" value="${esc(s.proximaAcao)}"></label>
+
+     <div class="sub">Equipe</div>
+     <label class="campo">FISCAL<input data-s="${i}" data-k="fiscal" value="${esc(s.fiscal)}"></label>
+     <label class="campo">ENGENHEIRO<input data-s="${i}" data-k="engenheiro" value="${esc(s.engenheiro)}"></label>
+     <label class="campo">COORDENADOR<input data-s="${i}" data-k="coordenador" value="${esc(s.coordenador)}"></label>
+     <label class="campo">ENCARREGADO<input data-s="${i}" data-k="encarregado" value="${esc(s.encarregado)}"></label>
+    </div></div>`;
+  }).join('')}
+  <datalist id="lstOperacao">${[...new Set(estado.sondas.map(s=>s.operacao).filter(Boolean))].map(o=>`<option value="${esc(o)}">`).join('')}</datalist>
+  <datalist id="lstSituacao">${[...new Set(estado.sondas.map(s=>s.situacao).filter(Boolean))].map(o=>`<option value="${esc(o)}">`).join('')}</datalist>
+ </div>
+
+ <div class="bloco"><h2>Poços entregues <button class="btAdd" data-add="entregue" type="button">+ Categoria</button></h2>
+  ${estado.entregues.map((e,i)=>`<div class="cartao"><div class="grade">
+   <label class="campo">CATEGORIA<input data-e="${i}" data-k="categoria" value="${esc(e.categoria)}"></label>
+   <label class="campo">META<input type="number" step="1" min="0" data-e="${i}" data-k="meta" value="${esc(e.meta)}"></label>
+   <label class="campo">ENTREGUE<input type="number" step="1" min="0" data-e="${i}" data-k="entregue" value="${esc(e.entregue)}"></label>
+   <div style="align-self:end"><button class="btDel" data-del="entregue" data-i="${i}" type="button">Excluir</button></div>
+  </div></div>`).join('')}
+  <div style="text-align:right;font-weight:800;color:#14406f;font-size:13px">TOTAL ENTREGUE: ${c.totalEntregue}${c.totalMeta>0?` • META: ${c.totalMeta} (${fmt(c.atingimento,0)}%)`:' • meta não definida'}</div>
+ </div>
+
+ <div class="bloco"><h2>Tempo não produtivo (NPT) <button class="btAdd" data-add="npt" type="button">+ Tipo</button></h2>
+  ${estado.npt.length ? estado.npt.map((n,i)=>{
+   const it = c.npt[i] || {pct:0};
+   return `<div class="cartao"><div class="grade">
+    <label class="campo" style="grid-column:1/-1">TIPO<input data-n="${i}" data-k="tipo" value="${esc(n.tipo)}"></label>
+    <label class="campo">QUANTIDADE<input type="number" step="1" min="0" data-n="${i}" data-k="qtd" value="${esc(n.qtd)}"></label>
+    <label class="campo">PERCENTUAL<input value="${Math.round(it.pct)}% (calculado)" disabled style="background:#eef2f6;color:#5a6b7d"></label>
+    <div style="align-self:end"><button class="btDel" data-del="npt" data-i="${i}" type="button">Excluir</button></div>
+   </div></div>`;
+  }).join('') : '<div style="font-size:12.5px;color:#5a6b7d;margin-bottom:10px">Nenhum evento de NPT registrado.</div>'}
+  <label class="campo">NOTA (ABAIXO DO GRÁFICO)<textarea data-raiz="notaNpt">${esc(estado.notaNpt)}</textarea></label>
+  <div style="margin-top:8px;font-size:11.5px;color:#5a6b7d;background:#f3f7fb;border-radius:9px;padding:10px;line-height:1.5">
+   O percentual é <strong>calculado a partir da quantidade</strong> e não pode ser digitado. Era esse o risco
+   apontado na auditoria: o campo digitado à mão continuava mostrando o valor antigo depois que a quantidade mudava.
+  </div>
+ </div>
+
+ <div class="bloco"><h2>Destaques do dia <button class="btAdd" data-add="destaque" type="button">+ Destaque</button></h2>
+  ${estado.destaques.length ? estado.destaques.map((d,i)=>`<div class="cartao"><div class="grade">
+   <label class="campo">TIPO<select data-d="${i}" data-k="cor">
+    ${[['critico','Crítico (vermelho)'],['alerta','Alerta (laranja)'],['positivo','Positivo (verde)'],['info','Informação (azul)']]
+      .map(([k,r])=>`<option value="${k}"${d.cor===k?' selected':''}>${r}</option>`).join('')}
+   </select></label>
+   <div style="align-self:end"><button class="btDel" data-del="destaque" data-i="${i}" type="button">Excluir</button></div>
+   <label class="campo" style="grid-column:1/-1">TEXTO<textarea data-d="${i}" data-k="texto">${esc(d.texto)}</textarea></label>
+  </div></div>`).join('') : '<div style="font-size:12.5px;color:#5a6b7d">Nenhum destaque ainda.</div>'}
+ </div>
+
+ <div class="bloco"><h2>Recomendações e plano de ação <button class="btAdd" data-add="rec" type="button">+ Recomendação</button></h2>
+  ${estado.recomendacoes.length ? estado.recomendacoes.map((r,i)=>`<div class="cartao"><div class="grade">
+   <label class="campo" style="grid-column:1/-1">${i+1}º<textarea data-r="${i}">${esc(r)}</textarea></label>
+   <div><button class="btDel" data-del="rec" data-i="${i}" type="button">Excluir</button></div>
+  </div></div>`).join('') : '<div style="font-size:12.5px;color:#5a6b7d">Nenhuma recomendação ainda.</div>'}
+ </div>
+
+ <div class="bloco"><h2>Manutenção</h2>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+   <button class="btAdd" id="btRestaurar" type="button">Restaurar dados de 18/08</button>
+   <button class="btAdd" id="btImportar" style="background:#4b5b6b" type="button">Importar backup</button>
+   <button class="btDel" id="btLimpar" type="button">Limpar tudo</button>
+  </div>
+ </div>`;
+}
+
+/* ============================================================
+   8. EDIÇÃO — um único caminho de escrita para todos os campos
+   ============================================================ */
+const paneEditor = document.getElementById('paneEditor');
+
+function aplicar(el){
+ const val = el.type==='checkbox' ? el.checked : el.value;
+ if(el.dataset.cfg!==undefined){ estado.config[el.dataset.cfg] = val; }
+ else if(el.dataset.raiz!==undefined){ estado[el.dataset.raiz] = val; }
+ else if(el.dataset.s!==undefined){ estado.sondas[+el.dataset.s][el.dataset.k] = val; }
+ else if(el.dataset.e!==undefined){ estado.entregues[+el.dataset.e][el.dataset.k] = val; }
+ else if(el.dataset.n!==undefined){ estado.npt[+el.dataset.n][el.dataset.k] = val; }
+ else if(el.dataset.d!==undefined){ estado.destaques[+el.dataset.d][el.dataset.k] = val; }
+ else if(el.dataset.r!==undefined){ estado.recomendacoes[+el.dataset.r] = val; }
+ else return false;
+ salvar();
+ return true;
+}
+/* digitação: aplica e recalcula o relatório, sem redesenhar o editor
+   (redesenhar faria o campo perder o foco no meio da digitação) */
+paneEditor.addEventListener('input', e=>{
+ if(aplicar(e.target)) renderRelatorio();
+});
+/* ao sair do campo / trocar seleção: redesenha o editor para atualizar
+   validação, contadores e percentuais calculados */
+paneEditor.addEventListener('change', e=>{
+ if(aplicar(e.target)){ renderRelatorio(); renderEditor(); }
+});
+
+paneEditor.addEventListener('click', e=>{
+ const add = e.target.dataset.add, del = e.target.dataset.del;
+ if(add){
+  if(add==='sonda') estado.sondas.push({sonda:'',poco:'',operacao:'',inicioDTM:'',fimDTM:'',inicioIntervencao:'',
+   fiscal:'',engenheiro:'',coordenador:'',encarregado:'',criticidade:'normal',producao:'',semMedicao:false,runLife:'',situacao:'',proximaAcao:''});
+  if(add==='entregue') estado.entregues.push({categoria:'Nova categoria',meta:0,entregue:0});
+  if(add==='npt') estado.npt.push({tipo:'Novo tipo de NPT',qtd:0});
+  if(add==='destaque') estado.destaques.push({cor:'info',texto:''});
+  if(add==='rec') estado.recomendacoes.push('');
+ } else if(del){
+  const i = +e.target.dataset.i;
+  const alvo = {sonda:'sondas', entregue:'entregues', npt:'npt', destaque:'destaques', rec:'recomendacoes'}[del];
+  if(alvo && confirm('Excluir este item?')) estado[alvo].splice(i,1); else return;
+ } else if(e.target.id==='btRestaurar'){
+  if(!confirm('Substituir todos os dados atuais pelos dados de 18/08/2026?')) return;
+  estado = clonar(ESTADO_PADRAO);
+ } else if(e.target.id==='btLimpar'){
+  if(!confirm('Apagar TODOS os dados? Isso não pode ser desfeito.')) return;
+  estado = {...clonar(ESTADO_PADRAO), sondas:[], entregues:[], npt:[], destaques:[], recomendacoes:[], notaNpt:''};
+ } else if(e.target.id==='btImportar'){
+  document.getElementById('arqJson').click(); return;
+ } else return;
+ salvar(); renderEditor(); renderRelatorio();
+});
+
+/* ============================================================
+   9. ABAS
+   ============================================================ */
+const abaEditor = document.getElementById('abaEditor'), abaRel = document.getElementById('abaRel');
+function mostrar(qual){
+ const ehRel = qual==='rel';
+ abaEditor.setAttribute('aria-selected', String(!ehRel));
+ abaRel.setAttribute('aria-selected', String(ehRel));
+ document.getElementById('paneEditor').classList.toggle('oculto', ehRel);
+ document.getElementById('paneRel').classList.toggle('oculto', !ehRel);
+ if(ehRel){ renderRelatorio(); requestAnimationFrame(ajustarEscala); }
+ window.scrollTo(0,0);
+}
+abaEditor.addEventListener('click', ()=>mostrar('editor'));
+abaRel.addEventListener('click', ()=>mostrar('rel'));
+
+/* ============================================================
+   10. EXPORTAÇÃO
+   ============================================================ */
+function nomeArquivo(ext){
+ const c = estado.config;
+ return `RDO_${(c.dataRelatorio||'').replace(/-/g,'')}_${c.turno||''}.${ext}`;
+}
+function baixar(url, nome){
+ const a = document.createElement('a');
+ a.href = url; a.download = nome;
+ document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* PNG via SVG/foreignObject: funciona offline e sem biblioteca externa.
+   Não há imagem externa nem fonte remota no relatório, então o canvas
+   não é contaminado e o toDataURL funciona. Se o navegador recusar
+   (Safari antigo tem limitações com foreignObject), cai no caminho
+   de impressão, que sempre funciona. */
+document.getElementById('btPng').addEventListener('click', async ()=>{
+ mostrar('rel');
+ await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+ const no = document.getElementById('relatorio');
+ const L = 1000, A = no.scrollHeight;
+ try{
+  const css = document.getElementById('estilos').textContent;
+  const conteudo = new XMLSerializer().serializeToString(no);
+  const svg =
+   `<svg xmlns="http://www.w3.org/2000/svg" width="${L*2}" height="${A*2}" viewBox="0 0 ${L} ${A}">`+
+   `<foreignObject x="0" y="0" width="${L}" height="${A}">`+
+   `<div xmlns="http://www.w3.org/1999/xhtml"><style>${css}</style>${conteudo}</div>`+
+   `</foreignObject></svg>`;
+  const img = new Image();
+  img.decoding = 'sync';
+  await new Promise((ok,err)=>{
+   img.onload = ok; img.onerror = ()=>err(new Error('foreignObject recusado'));
+   img.src = 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+  });
+  const cv = document.createElement('canvas');
+  cv.width = L*2; cv.height = A*2;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = '#eef2f6'; ctx.fillRect(0,0,cv.width,cv.height);
+  ctx.drawImage(img, 0, 0, cv.width, cv.height);
+  baixar(cv.toDataURL('image/png'), nomeArquivo('png'));
+ }catch(err){
+  console.error('Exportação PNG indisponível neste navegador:', err);
+  alert('Este navegador não conseguiu gerar o PNG.\n\nUse "Salvar PDF" — na tela de impressão escolha "Salvar em PDF" (ou tire um print da aba Relatório).');
+ }
+});
+
+document.getElementById('btPdf').addEventListener('click', ()=>{ mostrar('rel'); setTimeout(()=>window.print(), 250); });
+
+document.getElementById('btJson').addEventListener('click', ()=>{
+ const url = 'data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(estado,null,1));
+ baixar(url, nomeArquivo('json'));
+});
+document.getElementById('arqJson').addEventListener('change', e=>{
+ const f = e.target.files && e.target.files[0];
+ if(!f) return;
+ const fr = new FileReader();
+ fr.onload = ()=>{
+  try{
+   const novo = JSON.parse(fr.result);
+   if(!novo || !Array.isArray(novo.sondas)) throw new Error('formato');
+   estado = {...clonar(ESTADO_PADRAO), ...novo, config:{...ESTADO_PADRAO.config, ...(novo.config||{})}};
+   salvar(); renderEditor(); renderRelatorio();
+   alert('Backup importado.');
+  }catch(err){ alert('Arquivo inválido — esperado um backup gerado por este app.'); }
+ };
+ fr.readAsText(f);
+ e.target.value = '';
+});
+
+/* ============================================================
+   11. SERVICE WORKER (modo offline)
+   ============================================================ */
+if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
+ window.addEventListener('load', ()=>{
+  navigator.serviceWorker.register('./sw.js?v=3', {updateViaCache:'none'})
+   .catch(err=>console.error('RDO: modo offline indisponível neste dispositivo.', err));
+ });
+}
+
+/* ============================================================
+   12. INICIALIZAÇÃO
+   ============================================================ */
+renderEditor();
+renderRelatorio();
+mostrar('editor');
+
+})();
+</script>
+</body>
+</html>
