@@ -9,13 +9,14 @@
 // VERSIONAMENTO — ao alterar o index.html, atualize o valor abaixo E o "?v=" usado em:
 //   1) index.html -> navigator.serviceWorker.register('./sw.js?v=...')
 //   2) manifest.webmanifest -> "start_url"
-const CACHE = 'controle-operacional-v3.10.0';
+const CACHE = 'controle-operacional-v3.11.0';
 
 const APP_SHELL = [
  './index.html',
  './manifest.webmanifest',
  './icon-192.png',
- './icon-512.png'
+ './icon-512.png',
+ './logo-controle-operacional.png'
 ];
 
 self.addEventListener('install', event => {

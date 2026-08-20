@@ -320,6 +320,26 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       border-color:#ef4444;background:#fff7f7;
     }
 
+
+    /* v3.11 — identidade preto/vermelho/metal e layout executivo */
+    .report-header{background:linear-gradient(135deg,#050505 0%,#111 68%,#202020 100%);border-bottom:3px solid #dc2626}
+    .report-header-main{display:flex;align-items:center;gap:16px;min-width:0}
+    .report-brand-logo{width:66px;height:66px;object-fit:cover;border-radius:10px;border:1px solid #4b5563;background:#050505}
+    .report-sub{color:#d1d5db}.report-count{border:1px solid #4b5563;border-radius:10px;padding:9px 14px}.report-count-icon{background:transparent;color:#c0c0c0}
+    .report-card-title,.chart-total,.report-footer{background:#090d12}.report-card-title{border-bottom:2px solid #dc2626}
+    .kpi-grid.executive-top{grid-template-columns:repeat(3,minmax(0,.72fr)) minmax(0,2.25fr)}
+    .top-ranking-card{min-height:132px}.top-ranking-card .report-card-title{min-height:32px}.top-ranking-card .report-card-body{padding:7px 12px}
+    .top-ranking-card .rank-row{padding:4px 0}.top-ranking-card .rank-track{height:15px}
+    .report-charts-top{grid-template-columns:1fr 1.35fr 1fr}
+    .report-plan-pair{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:13px}
+    .report-plan-pair .bar-chart{height:170px}
+    .action-combined-table{width:100%;border-collapse:collapse;font-size:10px}.action-combined-table th{background:#f1f5f9;color:#111827;text-transform:uppercase;font-size:8px;letter-spacing:.04em}.action-combined-table th,.action-combined-table td{padding:10px;border:1px solid #dbe3ed;vertical-align:top}.action-combined-table td:first-child{width:48%;font-weight:800}.priority-dot{display:inline-grid;place-items:center;width:23px;height:23px;border-radius:6px;color:#fff;background:#dc2626;margin-right:8px;font-weight:900}.priority-dot.attn{background:#d97706}
+    #report-capture.capture-mode .kpi-grid.executive-top{grid-template-columns:repeat(3,minmax(0,.72fr)) minmax(0,2.25fr)}
+    #report-capture.capture-mode .report-plan-pair{grid-template-columns:1fr 1fr;gap:18px}
+    #report-capture.capture-mode .report-plan-pair .bar-chart{height:250px}
+    #report-capture.capture-mode .report-brand-logo{width:100px;height:100px}
+    #report-capture.capture-mode .action-combined-table{font-size:17px}#report-capture.capture-mode .action-combined-table th{font-size:14px}#report-capture.capture-mode .action-combined-table th,#report-capture.capture-mode .action-combined-table td{padding:15px}
+
     #report-capture{
       background:#e7edf5;
       border-radius:18px;
@@ -1496,8 +1516,15 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
         return new Intl.DateTimeFormat("pt-BR",{hour:"2-digit",minute:"2-digit"}).format(new Date(refNow()));
       }
 
+      function generationDate(){
+        return new Intl.DateTimeFormat("pt-BR",{dateStyle:"short"}).format(new Date());
+      }
+      function generationTime(){
+        return new Intl.DateTimeFormat("pt-BR",{hour:"2-digit",minute:"2-digit"}).format(new Date());
+      }
+
       function filenameDate(){
-        var d = new Date(refNow());
+        var d = new Date();
         return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")+"_"+String(d.getHours()).padStart(2,"0")+String(d.getMinutes()).padStart(2,"0");
       }
 
@@ -1860,7 +1887,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
         if(!mobileRows) mobileRows='<div class="empty">Nenhum registro corresponde aos filtros.</div>';
 
         var invalidCount=state.rows.filter(function(r){return rowHasContent(r)&&validateRow(r).length>0;}).length;
-        var warning=invalidCount ? '<div class="notice warning report-warning" style="margin:0 0 12px"><strong>Atenção:</strong> '+invalidCount+' registro(s) incompleto(s) foram excluídos dos indicadores até a correção.</div>' : "";
+        var warning="";
         var actionItems=state.actions.filter(actionHasContent);
         var attentionRows=actionItems.map(function(item,index){
           return '<div class="action-report-row"><span class="action-number">'+(index+1)+'</span><div><strong class="action-rig">'+escapeHtml(item.sonda||"Sonda não informada")+'</strong><div class="action-report-text">'+escapeHtml(item.attention||"Situação não informada")+'</div></div></div>';
@@ -1868,18 +1895,14 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
         var planActionRows=actionItems.map(function(item,index){
           return '<div class="action-report-row"><span class="action-number">'+(index+1)+'</span><div class="action-report-text">'+escapeHtml(item.action||"Plano não informado")+'</div></div>';
         }).join("");
+        var combinedActionRows=actionItems.map(function(item,index){
+          var cls=index===0?'':' attn';
+          return '<tr><td><span class="priority-dot'+cls+'">'+(index+1)+'</span><strong>'+escapeHtml(item.sonda||"Sonda não informada")+'</strong><br>'+escapeHtml(item.attention||"Situação não informada")+'</td><td>'+escapeHtml(item.action||"Plano não informado")+'</td></tr>';
+        }).join("");
         var actionSection=actionItems.length ?
+          '<article class="report-card"><div class="report-card-title">Pontos de atenção e plano de ação</div><div class="report-card-body" style="padding:0"><table class="action-combined-table"><thead><tr><th>Ponto de atenção</th><th>Plano de ação</th></tr></thead><tbody>'+combinedActionRows+'</tbody></table></div></article>'+
           '<article class="report-card"><div class="report-card-title">Equipe e empresa por sonda</div><div class="report-card-body" style="padding:0"><div class="table-wrap"><table class="report-table"><thead><tr><th>Sonda</th><th>Poço</th><th>Empresa</th><th>Engenheiro</th><th>Fiscal</th><th>Encarregado</th><th>Revestimento</th><th>Operação</th></tr></thead><tbody>'+
-              rows.map(function(r){
-                var vazio='<span style="color:#94a3b8;font-style:italic">—</span>';
-                var c=function(v){return v&&String(v).trim()?escapeHtml(v):vazio;};
-                return '<tr><td><strong>'+escapeHtml(r.sonda)+'</strong></td><td>'+c(r.poco)+'</td><td>'+c(r.empresa)+'</td><td>'+c(r.engenheiro)+'</td><td>'+c(r.fiscal)+'</td><td>'+c(r.encarregado)+'</td><td>'+c(r.revestimento)+'</td><td>'+c(r.operacaoTexto)+'</td></tr>';
-              }).join("")+
-            '</tbody></table></div></div></article>'+
-            '<div class="report-grid-2 report-actions">'+
-            '<article class="report-card"><div class="report-card-title">Pontos de atenção</div><div class="report-card-body"><div class="action-list">'+attentionRows+'</div></div></article>'+
-            '<article class="report-card"><div class="report-card-title">Plano de ação</div><div class="report-card-body"><div class="action-list">'+planActionRows+'</div></div></article>'+
-          '</div>' : "";
+              rows.map(function(r){var vazio='<span style="color:#94a3b8;font-style:italic">—</span>';var c=function(v){return v&&String(v).trim()?escapeHtml(v):vazio;};return '<tr><td><strong>'+escapeHtml(r.sonda)+'</strong></td><td>'+c(r.poco)+'</td><td>'+c(r.empresa)+'</td><td>'+c(r.engenheiro)+'</td><td>'+c(r.fiscal)+'</td><td>'+c(r.encarregado)+'</td><td>'+c(r.revestimento)+'</td><td>'+c(r.operacaoTexto)+'</td></tr>';}).join("")+'</tbody></table></div></div></article>' : "";
 
         var destaquesHtml=(state.destaques||[]).filter(function(t){return t && t.trim();}).map(function(t){
           return '<div class="action-report-row"><span class="action-number">🚩</span><div class="action-report-text">'+escapeHtml(t)+'</div></div>';
@@ -1892,28 +1915,18 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
         '</div>';
 
         var html=warning+
-          '<div class="report-header"><div><h2>RELATÓRIO DIÁRIO DE OPERAÇÕES</h2><div class="report-sub">Controle Sonda – Poço | '+reportDate()+' • '+(isFechado()?'FECHADO às ':'Ao vivo, atualizado ')+reportTime()+'</div></div><div class="report-count"><div class="report-count-icon">🛢️</div><div><strong>'+total+'</strong><span>Sondas em operação</span></div></div></div>'+
-            (excluidas.length
-              ? '<div class="report-excluidas"><strong>⚠ '+excluidas.length+' sonda(s) fora deste relatório por dado incompleto:</strong> '+
-                escapeHtml(excluidas.map(function(e){return e.sonda+' ('+e.motivos.join("; ")+')';}).join(" • "))+
-                '. Os indicadores acima consideram apenas as '+total+' sondas completas.</div>'
-              : '')+
-          '<div class="kpi-grid">'+kpis+'</div>'+
+          '<div class="report-header"><div class="report-header-main"><img class="report-brand-logo" src="./logo-controle-operacional.png" alt=""><div><h2>RELATÓRIO DIÁRIO DE OPERAÇÕES</h2><div class="report-sub">CONTROLE SONDA – POÇO | '+generationDate()+' – '+generationTime()+'</div></div></div><div class="report-count"><div class="report-count-icon">♜</div><div><strong>'+total+'</strong><span>Sondas operando</span></div></div></div>'+
+          '<div class="kpi-grid executive-top">'+kpiCard("Críticas","⚠",String(countHigh),total?Math.round(countHigh/total*100)+"%":"0%","#dc2626")+kpiCard("Atenção","△",String(countMedium),total?Math.round(countMedium/total*100)+"%":"0%","#d97706")+kpiCard("Normais","✓",String(countNormal),total?Math.round(countNormal/total*100)+"%":"0%","#059669")+'<article class="report-card top-ranking-card"><div class="report-card-title">Sondas com mais dias de intervenção</div><div class="report-card-body"><div class="ranking">'+top3Ranking+'</div></div></article></div>'+
           '<div class="report-grid-3 report-charts-top">'+
             '<article class="report-card"><div class="report-card-title">Distribuição por criticidade</div><div class="report-card-body"><div class="donut-layout"><div class="donut" style="background:conic-gradient('+conicGradient(critItems,total)+')"><div class="donut-center"><strong>'+total+'</strong><span>Sondas</span></div></div><div class="legend">'+(critLegend||'<div class="empty">Sem dados</div>')+'</div></div></div></article>'+
             '<article class="report-card"><div class="report-card-title">Poços em andamento</div><div class="report-card-body"><div class="donut-layout"><div class="donut" style="background:conic-gradient('+conicGradient(typeItems,total)+')"><div class="donut-center"><strong>'+total+'</strong><span>Poços</span></div></div><div class="legend">'+(typeLegend||'<div class="empty">Sem dados</div>')+'</div></div></div></article>'+
             '<article class="report-card"><div class="report-card-title">Status de NPT<span class="badge">'+nptTotal+' eventos</span></div><div class="report-card-body"><div class="donut-layout"><div class="donut" style="background:conic-gradient('+conicGradient(nptItems,nptTotal)+')"><div class="donut-center"><strong>'+nptTotal+'</strong><span>Eventos</span></div></div><div class="legend">'+(nptLegend||'<div class="empty">Sem eventos de NPT</div>')+(firstNptRow?'<div class="npt-note">🔧 NPT em '+escapeHtml(firstNptRow.sonda)+': '+escapeHtml(firstNptRow.obs||"")+'</div>':'')+'</div></div></div></article>'+
           '</div>'+
-          '<div class="report-grid-1 report-plan">'+
+          '<div class="report-plan-pair">'+
             '<article class="report-card"><div class="report-card-title">Plano do mês<span class="badge">Total '+planTotal+'</span></div><div class="report-card-body"><div class="bar-chart">'+planBars+'</div><div class="chart-total">TOTAL PLANEJADO: '+planTotal+' POÇOS</div></div></article>'+
+            '<article class="report-card"><div class="report-card-title">Poços entregues até '+generationDate()+'<span class="badge">Total '+deliveredTotal+'</span></div><div class="report-card-body"><div class="bar-chart">'+bars+'</div><div class="chart-total">TOTAL ENTREGUE: '+deliveredTotal+' POÇOS</div></div></article>'+
           '</div>'+
-          '<div class="report-grid-1 report-delivered">'+
-            '<article class="report-card"><div class="report-card-title">Poços entregues até '+reportDate()+'<span class="badge">Total '+deliveredTotal+'</span></div><div class="report-card-body"><div class="bar-chart">'+bars+'</div><div class="chart-total">TOTAL ENTREGUE: '+deliveredTotal+' POÇOS</div><div class="ghost-note">Barra hachurada = plano do mês, na mesma escala</div></div></article>'+
-          '</div>'+
-          '<div class="report-grid-2 report-excess">'+
-            '<article class="report-card"><div class="report-card-title">Sondas com excesso de dias</div><div class="report-card-body"><div class="ranking">'+ranking+'</div></div></article>'+
-            '<article class="report-card"><div class="report-card-title">Top 3 — maior exposição</div><div class="report-card-body"><div class="ranking">'+top3Ranking+'</div></div></article>'+
-          '</div>'+
+
           '<article class="report-card report-status"><div class="report-card-title">Status das sondas<span class="badge">'+rows.length+' registros</span></div><div class="report-card-body desktop-table screen-table" style="padding:0"><div class="table-wrap"><table class="report-table"><thead><tr><th>Sonda</th><th>Poço</th><th>Método</th><th>Dias de operação</th><th>Produção</th><th>Run Life</th><th>Situação</th><th>Criticidade</th><th>Observação</th><th>Próxima ação</th></tr></thead><tbody>'+rowsHtml+'</tbody></table></div></div><div class="report-card-body desktop-table export-table"><div class="table-wrap"><table class="report-table"><thead><tr><th>Sonda</th><th>Poço</th><th>Método</th><th>Dias de operação</th><th>Produção</th><th>Run Life</th><th>Situação</th><th>Criticidade</th><th>Observação</th><th>Próxima ação</th></tr></thead><tbody>'+exportRowsHtml+'</tbody></table></div></div><div class="mobile-rig-list">'+mobileRows+'</div></article>'+
           destaquesSection+
           actionSection+
@@ -2708,7 +2721,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
             sessionStorage.setItem(updateKey,"1");
             window.location.reload();
           });
-          navigator.serviceWorker.register("./sw.js?v=3.10.0",{updateViaCache:"none"}).then(function(registration){
+          navigator.serviceWorker.register("./sw.js?v=3.11.0",{updateViaCache:"none"}).then(function(registration){
             if(registration.waiting) registration.waiting.postMessage("SKIP_WAITING");
             registration.update().catch(function(){});
           }).catch(function(error){console.warn("Service worker indisponível",error);});
